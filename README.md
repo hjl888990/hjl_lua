@@ -4,6 +4,7 @@ nginx 配置
 
 http
 {
+        
         lua_package_path  "/data/lua/store/?.lua;/data/lua/common/?.lua;/data/lua/lib/?.lua;;";
         
         lua_package_cpath "/data/lua/common/?.so;/data/lua/lib/?.so;;";

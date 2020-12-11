@@ -1,4 +1,5 @@
 # hjl_lua
+
 nginx 配置
 http{
         lua_package_path  "/data/hjl_lua/store/?.lua;/data/hjl_lua/common/?.lua;/data/hjl_lua/lib/?.lua;;";

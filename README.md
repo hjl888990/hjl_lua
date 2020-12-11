@@ -2,13 +2,20 @@
 
 nginx 配置
 
-http{
+http
+{
         lua_package_path  "/data/lua/store/?.lua;/data/lua/common/?.lua;/data/lua/lib/?.lua;;";
+        
         lua_package_cpath "/data/lua/common/?.so;/data/lua/lib/?.so;;";
+        
         lua_shared_dict my_limit_req_store 256m; #限流模块共享内存
+        
         lua_shared_dict srcache_lock 10m; #srcache共享内存锁
+        
         lua_shared_dict srcache_data 256m; #srcache缓存数据
+        
         init_by_lua_file "/data/lua/store/init.lua";
+        
 }
 
 server {

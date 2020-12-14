@@ -24,6 +24,13 @@ _COMMON.response = function(content, code)
     ngx.exit(code);
 end
 
+--获取客户端ip
+_COMMON.get_client_ip = function()
+    local headers = ngx.req.get_headers()
+    local ip = headers["X-REAL-IP"] or headers["X_FORWARDED_FOR"] or ngx.var.remote_addr or "0.0.0.0"
+    return ip
+end
+
 --[[
     日志函数
     level: 默认为 ngx.ERR
@@ -74,12 +81,25 @@ _COMMON.in_array = function(value, tbl)
 end
 
 -- 自定义日志输出
-_COMMON.writeLog = function(content, level)
-    local msg = "[" .. os.date("%Y-%m-%d %X", os.time()) .. "] [" .. level .. "] " .. content .. "\n"
+_COMMON.writeLog = function(content, tag, level)
+    if (content == nil) then
+        return
+    end
+    if (LOG_FILE_PATH == nil) then
+        _COMMON.log(content);
+        return
+    end
+    if (tag == nil) then
+        tag = "application"
+    end
+    if (level == nil) then
+        level = "error"
+    end
+    local msg = "[" .. _COMMON.get_client_ip() .. "][" .. os.date("%Y-%m-%d %X", os.time()) .. "][" .. level .. "][" .. tag .. "]" .. content .. "\n"
     file = io.open(LOG_FILE_PATH, "a+")
     file:write(msg)
-    file:flush();
-    file:close();
+    file:flush()
+    file:close()
 end
 
-return _COMMON;
+return _COMMON

@@ -10,26 +10,30 @@ local _class = {}
 
 --[[ 接口并发数限流控制
      lua_shared_dict nginx.http申请的内存块
-     url 接口地址
+     request_key 接口地址
      limit_config: ['rate'=>$rate,'burst'=>$burst]
 --]]
-_class.uri_limit_qps = function(lua_shared_dict, uri, limit_config)
-    if uri == nil then
-        _COMMON.log("uri_limit_qps[uri] is null")
-        return false
+_class.request_limit = function(lua_shared_dict, request_key, limit_config)
+    local is_limit = false
+    if lua_shared_dict == nil then
+        _COMMON.writeLog("function limit_model.request_limit params.lua_shared_dict error")
+        return is_limit
+    end
+    if request_key == nil then
+        _COMMON.writeLog("function limit_model.request_limit params.request_key error")
+        return is_limit
     end
     if limit_config == nil then
-        _COMMON.log("uri_limit_qps[limit_config] is null")
-        return false
+        _COMMON.writeLog("function limit_model.request_limit params.limit_config error")
+        return is_limit
     end
     if limit_config['rate'] == nil then
-        _COMMON.log("uri_limit_qps[rate] is null")
-        return false
+        _COMMON.writeLog("function limit_model.request_limit params.limit_config.rate error")
+        return is_limit
     end
     local rate = tonumber(limit_config['rate'])
     if rate <= 0 then
-        _COMMON.log("uri_limit_qps[rate] is " .. rate)
-        return false
+        return is_limit
     end
     if limit_config['burst'] == nil then
         limit_config['burst'] = 0
@@ -38,18 +42,19 @@ _class.uri_limit_qps = function(lua_shared_dict, uri, limit_config)
     local limit_req = require "resty.limit.req"
     local lim, err = limit_req.new(lua_shared_dict, rate, burst)
     if not lim then
-        _COMMON.log("failed to instantiate a resty.limit.req object: " .. err)
-        return false
+        _COMMON.writeLog("failed to instantiate a resty.limit.req object: " .. err)
+        return is_limit
     end
-
-    local delay, err = lim:incoming(uri, true)
+    local delay, err = lim:incoming(request_key, true)
     -- 触发限速逻辑
     if not delay then
         if err == "rejected" then
-            return true
+            _COMMON.writeLog("request_key is limit#" .. request_key .. "#", "request_limit", "notice")
+            is_limit = true
+            return is_limit
         else
-            _COMMON.log("failed to limit req: " .. err)
-            return false
+            _COMMON.writeLog("failed to limit req: " .. err)
+            return is_limit
         end
     end
     if delay >= 0.001 then
@@ -64,6 +69,8 @@ _class.uri_limit_qps = function(lua_shared_dict, uri, limit_config)
         -- 200 req/sec rate.
         ngx.sleep(delay)
     end
+
+    return is_limit
 end
 
 return _class;

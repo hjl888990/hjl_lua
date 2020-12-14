@@ -72,7 +72,7 @@ end
 
 -- 一维数组存在value判断
 _COMMON.in_array = function(value, tbl)
-    for k, v in ipairs(tbl) do
+    for k, v in pairs(tbl) do
         if v == value then
             return true
         end

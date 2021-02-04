@@ -46,6 +46,17 @@ local function url_access(cache)
     if is_limit then
         _COMMON.response('{"code":189,"msg":"Server is too busy","data":""}');
     end
+    -- 临时代码
+    if (url == '/decode/onlyCheckAuthed') then
+        ngx.req.read_body()
+        args = ngx.req.get_post_args()
+        if (args['direct_return'] ~= nil and (args['direct_return'] == 'true' or args['direct_return'] == '1')) then
+            _COMMON.response('{"code":1,"msg":{"text":"操作成功","code":0},"data":"","url":"","wait":3}');
+        end
+        if (args['mini_type'] ~= nil and (args['mini_type'] == 'h5')) then
+            _COMMON.response('{"code":1,"msg":{"text":"操作成功","code":0},"data":"","url":"","wait":3}');
+        end
+    end
 end
 
 -- 入口
